@@ -3,21 +3,27 @@ from github import Github
 from github.GithubException import GithubException
 import matplotlib.pyplot as plt
 import numpy as np
+import Graphql
 
-access_token = ""
+access_token = "<your access token>"
 g = Github(access_token)
 larsyx = g.get_user()
 
+language = ['Java', 'Python', 'C', 'C++', 'Go', 'R',
+            'ZIL', 'JavaScript']
+
+countries = ["Germany"]
 
 def trovaThread(repository, author):
     tot_commits = 0
     for repo in repository:
         try:
-            tot_commits += repo.get_commits(author = author).totalCount
+            tot_commits += repo.get_commits(author=author).totalCount
         except GithubException:
-            print("Repository vuoto " )
+            print("Repository vuoto ")
 
     print("#Commits: " + str(tot_commits))
+
 
 def analisiRepository(repo):
     commits = repo.get_commits()
@@ -58,11 +64,11 @@ def analisiRepository(repo):
     codeRemoved = []
     print("\nFrequenza di codice: ")
     for r in codeFrequency:
-        print("\t" + str(r.week.date()) + " Linee di codice aggiunti: " + str(r.additions) +"\t Linee di codice rimossi " +  str(r.deletions))
+        print("\t" + str(r.week.date()) + " Linee di codice aggiunti: " + str(
+            r.additions) + "\t Linee di codice rimossi " + str(r.deletions))
         weekCode.append(r.week.date())
         codeAdded.append(r.additions)
         codeRemoved.append(r.deletions)
-
 
     fig, ax = plt.subplots()
     ax.bar(weekCommit, totalComm)
@@ -79,20 +85,21 @@ def analisiRepository(repo):
 
     plt.show()
 
-    #linguaggi
+    # linguaggi
     print("\nLinguaggi: ")
     for language in languages:
         print("\t" + language)
 
-    #contributori
-   # print("\nContributori: ")
-    #for coll in contributors:
-     #   print("\t" + coll.login + " " + str(coll.contributions))
+    # contributori
+
+
+# print("\nContributori: ")
+# for coll in contributors:
+#   print("\t" + coll.login + " " + str(coll.contributions))
 
 def analisiUtente(user):
-
     repository = user.get_repos()
-    thread = Thread(target=trovaThread, args= (repository,user.login))
+    thread = Thread(target=trovaThread, args=(repository, user.login))
     thread.start()
     print("\nANALISI UTENTE")
     print("Login:" + user.login)
@@ -105,23 +112,31 @@ def analisiUtente(user):
 
 def analisiRepositories():
     print("\n\n\nRepository in Python")
-    repositories = g.search_repositories(query='language:Python' )
+    repositories = g.search_repositories(query='language:Python')
     print(repositories.totalCount)
     i = 0
     for r in repositories:
-        print(str(i) +" " + r.name  + " " + r.url + "total commit: " + str(r.get_commits().totalCount))
-        i+=1
+        print(str(i) + " " + r.name + " " + r.url + "total commit: " + str(r.get_commits().totalCount))
+        i += 1
         for l in r.get_languages():
             print("\t" + l)
 
 
 def main():
-    #analisiRepository(g.get_repo("apache/kibble-1"))
-    analisiRepository(g.get_repo("apache/dubbo"))
-    #analisiUtente(g.get_user("taowen"))
-    #analisiRepositories()
+    # analisiRepository(g.get_repo("apache/kibble-1"))
+    # analisiRepository(g.get_repo("apache/dubbo"))
+    # analisiUtente(g.get_user("taowen"))
+    # analisiRepositories()
+    #analisiUtenti()
 
+    graph = Graphql.graphQL(access_token)
+    graph.getTotalNumberOfUser()
     print("\n\n\n" + str(g.get_rate_limit()))
+    for lang in language:
+        graph.getTotalRepositoryByLanguage(lang)
+
+    for country in countries:
+        graph.getUserByCountry(country)
 
 if __name__ == "__main__":
     main()
