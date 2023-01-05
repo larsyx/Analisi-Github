@@ -1,18 +1,21 @@
+import os
 from threading import Thread
 from github import Github
 from github.GithubException import GithubException
 import matplotlib.pyplot as plt
 import numpy as np
 import Graphql
+from classFile import LanguageStatistics, UserCountry
 
-access_token = "<your token>"
+access_token = "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"
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
 
 countries = []
 language = []
-
+MAX_PRINT = 15
+path = "ResultsAnalysis/images/"
 
 def creaArrayLanguage():
     file = open("LanguageList.txt", "r")
@@ -143,19 +146,64 @@ def analysisRepositories():
 def analysisProgrammingLanguages():
     resultLanguages = []
     for lang in language:
-        resultLanguages.append(graph.getTotalRepositoryByLanguage(lang))
+        p1 = LanguageStatistics(lang, graph.getTotalRepositoryByLanguage(lang))
+        resultLanguages.append(p1)
 
-    plt.pie(resultLanguages)
-    plt.legend(language,title="Language",bbox_to_anchor=(1,0.5), loc="center right", bbox_transform=plt.gcf().transFigure)
+    file = open("ResultsAnalysis/LanguageStatistics.csv", "w+")
+    file.write("Language, Repository\n")
+    for res in resultLanguages:
+        file.write(res.name +", " + str(res.value) + "\n")
+    file.close()
+
+    resultLanguages.sort(key=lambda x: x.value, reverse=True)
+    values, names = [], []
+    maxPlot = MAX_PRINT
+    if len(resultLanguages) < MAX_PRINT:
+        maxPlot = len(resultLanguages)
+
+    for i in range(0, maxPlot):
+        values.append(resultLanguages[i].value)
+        names.append(resultLanguages[i].name)
+
+    plt.pie(values)
+    plt.legend(names, title="Language", bbox_to_anchor=(1, 0.5), loc="center right", bbox_transform=plt.gcf().transFigure)
+    plt.savefig(path + "ProgrammingLanguage.png", format="png")
+    plt.show()
+
+def analysisUserForCountry():
+    result = []
+    for country in countries:
+        p = UserCountry(country, graph.getUserByCountry(country))
+        result.append(p)
+
+    file = open("ResultsAnalysis/UsersForCountry.csv", "w+")
+    file.write("Country, #Users\n")
+    for res in result:
+        file.write(res.country +", " + str(res.value) + "\n")
+    file.close()
+
+    result.sort(key=lambda x: x.value, reverse=True)
+    values, names = [], []
+    maxPlot = MAX_PRINT
+    if len(result) < MAX_PRINT:
+        maxPlot = len(result)
+
+    for i in range(0, maxPlot):
+        values.append(result[i].value)
+        names.append(result[i].country)
+    plt.figure()
+    plt.pie(values)
+    plt.legend(names, title="Country", bbox_to_anchor=(1, 0.5), loc="center right", bbox_transform=plt.gcf().transFigure)
+    plt.savefig(path + "UsersForCountry.png", format="png")
     plt.show()
 
 def main():
     # analysisRepository(g.get_repo("apache/kibble-1"))
-    analysisRepository(g.get_repo("apache/dubbo"))
+    #analysisRepository(g.get_repo("apache/dubbo"))
     # analysisUser(g.get_user("taowen"))
     # analysisRepositories()
     analysisProgrammingLanguages()
-
+    analysisUserForCountry()
 
     print("\n\n\n" + str(g.get_rate_limit()))
 
@@ -163,3 +211,4 @@ if __name__ == "__main__":
     creaArrayLanguage()
     creaArrayCountries()
     main()
+

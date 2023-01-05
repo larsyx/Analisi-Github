@@ -103,4 +103,4 @@ class graphQL:
 
         result = self.run_query(query, variables)
         print("Total user in", country + ":", result["data"]["user"]["userCount"])
-        result["data"]["user"]["userCount"]
+        return result["data"]["user"]["userCount"]
