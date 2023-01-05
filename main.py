@@ -7,46 +7,30 @@ import numpy as np
 import Graphql
 from classFile import LanguageStatistics, UserCountry
 
-access_token = "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"
+access_token = "<your token>"
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
 
 countries = []
 language = []
+users = []
+repositories = []
 MAX_PRINT = 15
 path = "ResultsAnalysis/images/"
 
-def creaArrayLanguage():
-    file = open("LanguageList.txt", "r")
+def creaArray(path):
+    file = open(path, "r")
     lines = file.readlines()
     file.close()
 
+    temp = []
     for line in lines:
-        language.append(line[0: (len(line) - 1)])
+        temp.append(line[0: (len(line) - 1)])
 
+    return temp;
 
-def creaArrayCountries():
-    file = open("CountriesList.txt", "r")
-    lines = file.readlines()
-    file.close()
-
-    for line in lines:
-        countries.append(line[0: (len(line) - 1)])
-
-
-def trovaThread(repository, author):
-    tot_commits = 0
-    for repo in repository:
-        try:
-            tot_commits += repo.get_commits(author=author).totalCount
-        except GithubException:
-            print("Repository vuoto ")
-
-    print("#Commits: " + str(tot_commits))
-
-
-def analysisRepository(repo):
+def analysisRepository(repo, file):
     commits = repo.get_commits()
     contributors = repo.get_contributors()
     languages = repo.get_languages()
@@ -57,22 +41,38 @@ def analysisRepository(repo):
     pullRequest = repo.get_pulls()
     issues = repo.get_issues()
 
-    commitActivity = repo.get_stats_commit_activity()
-    codeFrequency = repo.get_stats_code_frequency()
-
+    file.write("\n")
     print("\nANALISI REPOSITORY")
     print(repo.name)
+    file.write(repo.name + ", ")
     print("#Commit:" + str(commits.totalCount))
+    file.write(str(commits.totalCount) + ", ")
     print("#Contributori: " + str(contributors.totalCount))
+    file.write(str(contributors.totalCount) + ", ")
     print("#Linguaggi: " + str(len(languages)))
+    file.write(str(len(languages)) + ", ")
     print("#Brench: " + str(brench.totalCount))
+    file.write(str(brench.totalCount) + ", ")
     print("#Forks: " + str(forks.totalCount))
+    file.write(str(forks.totalCount) + ", ")
     print("#Stars: " + str(stars))
+    file.write(str(stars) + ", ")
     print("#Releases: " + str(releases.totalCount))
+    file.write(str(releases.totalCount) + ", ")
     print("#Pull request: " + str(pullRequest.totalCount))
+    file.write(str(pullRequest.totalCount)+ ", ")
     print("#Iusses: " + str(issues.totalCount))
+    file.write(str(issues.totalCount))
 
+    analysisRepository2(repo)
+
+def analysisRepository2(repo):
     print("\nPeriodi di attività: ")
+
+    commitActivity = repo.get_stats_commit_activity()
+    codeFrequency = repo.get_stats_code_frequency()
+    languages =  repo.get_languages()
+
     weekCommit = []
     totalComm = []
     for comm in commitActivity:
@@ -87,7 +87,7 @@ def analysisRepository(repo):
     for r in codeFrequency:
         print("\t" + str(r.week.date()) + " Linee di codice aggiunti: " + str(
             r.additions) + "\t Linee di codice rimossi " + str(r.deletions))
-        if r.additions>0 or r.deletions>0 :
+        if r.additions > 0 or r.deletions > 0:
             weekCode.append(r.week.date())
             codeAdded.append(r.additions)
             codeRemoved.append(r.deletions)
@@ -97,6 +97,7 @@ def analysisRepository(repo):
     ax.set_ylabel('#Commits')
     ax.set_xlabel('Settimane')
     ax.set_title('Periodi di attività')
+    plt.savefig("ResultsAnalysis/images/Repository_commits_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     x = range(583)
@@ -104,7 +105,7 @@ def analysisRepository(repo):
     ax = plt.subplot(111)
     ax.bar(weekCode, codeRemoved, width=1, color='r')
     ax.bar(weekCode, codeAdded, width=1, color='b')
-
+    plt.savefig("ResultsAnalysis/images/Repository_codeActivity_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     # linguaggi
@@ -112,27 +113,45 @@ def analysisRepository(repo):
     for language in languages:
         print("\t" + language)
 
-    # contributori
-
-
-# print("\nContributori: ")
-# for coll in contributors:
-#   print("\t" + coll.login + " " + str(coll.contributions))
-
-def analysisUser(user):
+def analysisUser(user, file):
     repository = user.get_repos()
-    thread = Thread(target=trovaThread, args=(repository, user.login))
-    thread.start()
+    file.write("\n")
     print("\nANALISI UTENTE")
     print("Login:" + user.login)
-    print("Nome: " + user.name)
+    file.write(user.login + ", ")
+    print("Nome: ", user.name)
+    if user.name == None:
+        file.write("NoName, ")
+    else:
+        file.write(user.name + ", ")
     print("Profilo creato il: " + str(user.created_at))
     print("#Repository: " + str(repository.totalCount))
+    file.write(str(repository.totalCount) + ", ")
     print("#Followers: " + str(user.followers))
-    thread.join()
+    file.write(str(user.followers) + ", ")
 
+    tot_commits = 0
+    for repo in repository:
+        try:
+            tot_commits += repo.get_commits(author=user.login).totalCount
+        except GithubException:
+            print("Repository vuoto ")
 
-def analysisRepositories():
+    print("#Commits: " + str(tot_commits))
+    file.write(str(tot_commits))
+    return tot_commits
+
+def analysisUsers():
+    file = open("ResultsAnalysis/UsersStatistics.csv", "w+")
+    file.write("Login, Nome, #Repository, #Followers, #Commits")
+
+    commits = []
+    for user in users:
+        commits.append(analysisUser(g.get_user(user), file))
+    file.close()
+    #grafico commits
+
+def smallAnalysisRepositories():
     print("\n\n\nRepository in Python")
     repositories = g.search_repositories(query='language:Python')
     print(repositories.totalCount)
@@ -142,6 +161,14 @@ def analysisRepositories():
         i += 1
         for l in r.get_languages():
             print("\t" + l)
+
+def analysisRepositories():
+    file = open("ResultsAnalysis/RepositoriesAnalysis.csv", "w+")
+    file.write("Name, #Commits, #Contributors, #Languages, #Brench, #Forks, #Stars, #Releases, #Pull request, #Iusses")
+    for repo in repositories:
+        analysisRepository(g.get_repo(repo), file)
+
+    file.close()
 
 def analysisProgrammingLanguages():
     resultLanguages = []
@@ -201,14 +228,18 @@ def main():
     # analysisRepository(g.get_repo("apache/kibble-1"))
     #analysisRepository(g.get_repo("apache/dubbo"))
     # analysisUser(g.get_user("taowen"))
+    analysisUsers()
+    analysisRepositories()
     # analysisRepositories()
-    analysisProgrammingLanguages()
-    analysisUserForCountry()
+    #analysisProgrammingLanguages()
+    #analysisUserForCountry()
 
     print("\n\n\n" + str(g.get_rate_limit()))
 
 if __name__ == "__main__":
-    creaArrayLanguage()
-    creaArrayCountries()
+    language = creaArray("InputAnalysis/LanguageList.txt")
+    countries = creaArray("InputAnalysis/CountriesList.txt")
+    users = creaArray("InputAnalysis/UsersLogin.txt")
+    repositories = creaArray("InputAnalysis/RepositoryList.txt")
     main()
 
