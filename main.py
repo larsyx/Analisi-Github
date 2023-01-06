@@ -26,7 +26,10 @@ def creaArray(path):
 
     temp = []
     for line in lines:
-        temp.append(line[0: (len(line) - 1)])
+        if line[len(line)-1 : len(line)] == "\n":
+            temp.append(line[0: (len(line) - 1)])
+        else:
+            temp.append(line)
 
     return temp;
 
@@ -66,6 +69,7 @@ def analysisRepository(repo, file):
 
     analysisRepository2(repo)
 
+
 def analysisRepository2(repo):
     print("\nPeriodi di attività: ")
 
@@ -97,7 +101,7 @@ def analysisRepository2(repo):
     ax.set_ylabel('#Commits')
     ax.set_xlabel('Settimane')
     ax.set_title('Periodi di attività')
-    plt.savefig("ResultsAnalysis/images/Repository_commits_" + repo.name +".png", format="png", dpi =300)
+    plt.savefig(path +"Repository_commits_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     x = range(583)
@@ -105,13 +109,29 @@ def analysisRepository2(repo):
     ax = plt.subplot(111)
     ax.bar(weekCode, codeRemoved, width=1, color='r')
     ax.bar(weekCode, codeAdded, width=1, color='b')
-    plt.savefig("ResultsAnalysis/images/Repository_codeActivity_" + repo.name +".png", format="png", dpi =300)
+    plt.savefig(path + "Repository_codeActivity_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     # linguaggi
     print("\nLinguaggi: ")
     for language in languages:
         print("\t" + language)
+
+    contributors = repo.get_contributors()
+    commitsContributors = []
+    for contributor in contributors:
+        try:
+            commitsContributors.append(repo.get_commits(author=contributor.login).totalCount)
+        except GithubException:
+            print("Repository vuoto ")
+
+    height = np.arange(contributors.totalCount)
+    plt.bar(height, commitsContributors, align='center')
+    plt.xticks(height)
+    plt.xlabel("Users")
+    plt.ylabel("Commits")
+    plt.savefig(path + "ContributorsStatistics_" +repo.name + ".png", format="png")
+    plt.show()
 
 def analysisUser(user, file):
     repository = user.get_repos()
@@ -149,7 +169,14 @@ def analysisUsers():
     for user in users:
         commits.append(analysisUser(g.get_user(user), file))
     file.close()
-    #grafico commits
+
+    height = np.arange(len(users))
+    plt.bar(height, commits, align='center')
+    plt.xticks(height)
+    plt.xlabel("Users")
+    plt.ylabel("Commits")
+    plt.savefig(path + "UsersStatistics.png", format="png")
+    plt.show()
 
 def smallAnalysisRepositories():
     print("\n\n\nRepository in Python")
@@ -225,12 +252,8 @@ def analysisUserForCountry():
     plt.show()
 
 def main():
-    # analysisRepository(g.get_repo("apache/kibble-1"))
-    #analysisRepository(g.get_repo("apache/dubbo"))
-    # analysisUser(g.get_user("taowen"))
-    analysisUsers()
+    #analysisUsers()
     analysisRepositories()
-    # analysisRepositories()
     #analysisProgrammingLanguages()
     #analysisUserForCountry()
 
