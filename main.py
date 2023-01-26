@@ -1,5 +1,3 @@
-import os
-from threading import Thread
 from github import Github
 from github.GithubException import GithubException
 import matplotlib.pyplot as plt
@@ -7,7 +5,7 @@ import numpy as np
 import Graphql
 from classFile import LanguageStatistics, UserCountry
 
-access_token = "<your token>"
+access_token = ""
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
@@ -34,40 +32,44 @@ def creaArray(path):
     return temp;
 
 def analysisRepository(repo, file):
-    commits = repo.get_commits()
-    contributors = repo.get_contributors()
-    languages = repo.get_languages()
-    brench = repo.get_branches()
-    forks = repo.get_forks()
-    stars = repo.stargazers_count
-    releases = repo.get_releases()
-    pullRequest = repo.get_pulls()
-    issues = repo.get_issues()
+    try:
+        commits = repo.get_commits()
+        contributors = repo.get_contributors()
+        languages = repo.get_languages()
+        brench = repo.get_branches()
+        forks = repo.get_forks()
+        stars = repo.stargazers_count
+        releases = repo.get_releases()
+        pullRequest = repo.get_pulls()
+        issues = repo.get_issues()
 
-    file.write("\n")
-    print("\nANALISI REPOSITORY")
-    print(repo.name)
-    file.write(repo.name + ", ")
-    print("#Commit:" + str(commits.totalCount))
-    file.write(str(commits.totalCount) + ", ")
-    print("#Contributori: " + str(contributors.totalCount))
-    file.write(str(contributors.totalCount) + ", ")
-    print("#Linguaggi: " + str(len(languages)))
-    file.write(str(len(languages)) + ", ")
-    print("#Brench: " + str(brench.totalCount))
-    file.write(str(brench.totalCount) + ", ")
-    print("#Forks: " + str(forks.totalCount))
-    file.write(str(forks.totalCount) + ", ")
-    print("#Stars: " + str(stars))
-    file.write(str(stars) + ", ")
-    print("#Releases: " + str(releases.totalCount))
-    file.write(str(releases.totalCount) + ", ")
-    print("#Pull request: " + str(pullRequest.totalCount))
-    file.write(str(pullRequest.totalCount)+ ", ")
-    print("#Iusses: " + str(issues.totalCount))
-    file.write(str(issues.totalCount))
+        file.write("\n")
+        print("\nANALISI REPOSITORY")
+        print(repo.name)
+        file.write(repo.name + ", ")
+        print("#Commit:" + str(commits.totalCount))
+        file.write(str(commits.totalCount) + ", ")
+        print("#Contributori: " + str(contributors.totalCount))
+        file.write(str(contributors.totalCount) + ", ")
+        print("#Linguaggi: " + str(len(languages)))
+        file.write(str(len(languages)) + ", ")
+        print("#Brench: " + str(brench.totalCount))
+        file.write(str(brench.totalCount) + ", ")
+        print("#Forks: " + str(forks.totalCount))
+        file.write(str(forks.totalCount) + ", ")
+        print("#Stars: " + str(stars))
+        file.write(str(stars) + ", ")
+        print("#Releases: " + str(releases.totalCount))
+        file.write(str(releases.totalCount) + ", ")
+        print("#Pull request: " + str(pullRequest.totalCount))
+        file.write(str(pullRequest.totalCount)+ ", ")
+        print("#Iusses: " + str(issues.totalCount))
+        file.write(str(issues.totalCount))
+    except GithubException:
+        print("null ")
+        file.write("Repository null")
 
-    analysisRepository2(repo)
+    #analysisRepository2(repo)
 
 
 def analysisRepository2(repo):
@@ -167,7 +169,12 @@ def analysisUsers():
 
     commits = []
     for user in users:
-        commits.append(analysisUser(g.get_user(user), file))
+        try:
+            commits.append(analysisUser(g.get_user(user), file))
+        except GithubException:
+            print("users null: " + user)
+            file.write("\nUsers null: " + user)
+
     file.close()
 
     height = np.arange(len(users))
@@ -193,7 +200,12 @@ def analysisRepositories():
     file = open("ResultsAnalysis/RepositoriesAnalysis.csv", "w+")
     file.write("Name, #Commits, #Contributors, #Languages, #Brench, #Forks, #Stars, #Releases, #Pull request, #Iusses")
     for repo in repositories:
-        analysisRepository(g.get_repo(repo), file)
+        try:
+            analysisRepository(g.get_repo(repo), file)
+        except GithubException:
+            print("null "+ repo)
+            file.write("\nrepository null " + repo )
+
 
     file.close()
 
@@ -253,7 +265,7 @@ def analysisUserForCountry():
 
 def main():
     #analysisUsers()
-    analysisRepositories()
+    #analysisRepositories()
     #analysisProgrammingLanguages()
     #analysisUserForCountry()
 
