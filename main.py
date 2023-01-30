@@ -5,7 +5,7 @@ import numpy as np
 import Graphql
 from classFile import LanguageStatistics, UserCountry
 
-access_token = "<YOUR-TOKEN>"
+access_token = "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"
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
@@ -16,6 +16,8 @@ users = []
 repositories = []
 MAX_PRINT = 15
 path = "ResultsAnalysis/images/"
+activityRepo = ["apache/dubbo","apache/thrift","keras-team/keras","endrazine/wcc","AUCOHL/DFFRAM"]
+
 
 def creaArray(path):
     file = open(path, "r")
@@ -29,7 +31,8 @@ def creaArray(path):
         else:
             temp.append(line)
 
-    return temp;
+    return temp
+
 
 def analysisRepository(repo, file):
     try:
@@ -69,8 +72,6 @@ def analysisRepository(repo, file):
         print("null ")
         file.write("Repository null")
 
-    #analysisRepository2(repo)
-
 
 def analysisRepository2(repo):
     print("\nPeriodi di attività: ")
@@ -99,19 +100,21 @@ def analysisRepository2(repo):
             codeRemoved.append(r.deletions)
 
     fig, ax = plt.subplots()
+    fig.set_size_inches(15, 8)
     ax.bar(weekCommit, totalComm)
     ax.set_ylabel('#Commits')
     ax.set_xlabel('Settimane')
     ax.set_title('Periodi di attività')
-    plt.savefig(path +"Repository_commits_" + repo.name +".png", format="png", dpi =300)
+    plt.savefig(path +"ActivityRepository/Repository_commits_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     x = range(583)
     fig = plt.figure()
-    ax = plt.subplot(111)
+    fig.set_size_inches(15, 8)
+    ax = plt.subplot()
     ax.bar(weekCode, codeRemoved, width=1, color='r')
     ax.bar(weekCode, codeAdded, width=1, color='b')
-    plt.savefig(path + "Repository_codeActivity_" + repo.name +".png", format="png", dpi =300)
+    plt.savefig(path + "ActivityRepository/Repository_codeActivity_" + repo.name +".png", format="png", dpi =300)
     plt.show()
 
     # linguaggi
@@ -129,11 +132,12 @@ def analysisRepository2(repo):
 
     height = np.arange(contributors.totalCount)
     plt.bar(height, commitsContributors, align='center')
-    plt.xticks(height)
+    plt.xticks([])
     plt.xlabel("Users")
     plt.ylabel("Commits")
-    plt.savefig(path + "ContributorsStatistics_" +repo.name + ".png", format="png")
+    plt.savefig(path + "ActivityRepository/ContributorsStatistics_" +repo.name + ".png", format="png")
     plt.show()
+
 
 def analysisUser(user, file):
     repository = user.get_repos()
@@ -163,6 +167,7 @@ def analysisUser(user, file):
     file.write(str(tot_commits))
     return tot_commits
 
+
 def analysisUsers():
     file = open("ResultsAnalysis/UsersStatistics.csv", "w+")
     file.write("Login, Nome, #Repository, #Followers, #Commits")
@@ -185,6 +190,7 @@ def analysisUsers():
     plt.savefig(path + "UsersStatistics.png", format="png")
     plt.show()
 
+
 def smallAnalysisRepositories():
     print("\n\n\nRepository in Python")
     repositories = g.search_repositories(query='language:Python')
@@ -196,6 +202,7 @@ def smallAnalysisRepositories():
         for l in r.get_languages():
             print("\t" + l)
 
+
 def analysisRepositories():
     file = open("ResultsAnalysis/RepositoriesAnalysis.csv", "w+")
     file.write("Name, #Commits, #Contributors, #Languages, #Brench, #Forks, #Stars, #Releases, #Pull request, #Iusses")
@@ -206,8 +213,8 @@ def analysisRepositories():
             print("null "+ repo)
             file.write("\nrepository null " + repo )
 
-
     file.close()
+
 
 def analysisProgrammingLanguages():
     resultLanguages = []
@@ -236,6 +243,7 @@ def analysisProgrammingLanguages():
     plt.savefig(path + "ProgrammingLanguage.png", format="png")
     plt.show()
 
+
 def analysisUserForCountry():
     result = []
     for country in countries:
@@ -263,11 +271,21 @@ def analysisUserForCountry():
     plt.savefig(path + "UsersForCountry.png", format="png")
     plt.show()
 
+
+def analysisActivityRepositories():
+    for repo in activityRepo:
+        try:
+            r = g.get_repo(repo)
+            analysisRepository2(r)
+        except GithubException:
+            print("null "+ repo)
+
 def main():
     #analysisUsers()
     #analysisRepositories()
+    analysisActivityRepositories()
     #analysisProgrammingLanguages()
-    analysisUserForCountry()
+    #analysisUserForCountry()
 
     print("\n\n\n" + str(g.get_rate_limit()))
 
