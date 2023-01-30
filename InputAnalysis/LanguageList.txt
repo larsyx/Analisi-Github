@@ -18,3 +18,14 @@ TypeScript
 PHP
 Ruby
 Scala
+XML
+Visual Basic
+TeX
+Turtle
+Smalltalk
+Pascal
+Haskell
+Fortran
+COBOL
+Cool
+BASIC

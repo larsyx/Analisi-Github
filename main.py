@@ -5,7 +5,7 @@ import numpy as np
 import Graphql
 from classFile import LanguageStatistics, UserCountry
 
-access_token = ""
+access_token = "<YOUR-TOKEN>"
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
@@ -267,7 +267,7 @@ def main():
     #analysisUsers()
     #analysisRepositories()
     #analysisProgrammingLanguages()
-    #analysisUserForCountry()
+    analysisUserForCountry()
 
     print("\n\n\n" + str(g.get_rate_limit()))
 
