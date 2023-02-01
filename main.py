@@ -5,7 +5,7 @@ import numpy as np
 import Graphql
 from classFile import LanguageStatistics, UserCountry
 
-access_token = "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"
+access_token = "<YOUR TOKEN"
 g = Github(access_token)
 larsyx = g.get_user()
 graph = Graphql.graphQL(access_token)
@@ -84,8 +84,9 @@ def analysisRepository2(repo):
     totalComm = []
     for comm in commitActivity:
         print("\tsettimana del: " + str(comm.week.date()) + " #Commits: " + str(comm.total))
-        weekCommit.append(comm.week.date())
-        totalComm.append(comm.total)
+        if comm.total > 0:
+            weekCommit.append(comm.week.date())
+            totalComm.append(comm.total)
 
     weekCode = []
     codeAdded = []
@@ -99,6 +100,7 @@ def analysisRepository2(repo):
             codeAdded.append(r.additions)
             codeRemoved.append(r.deletions)
 
+    print(len(weekCode))
     fig, ax = plt.subplots()
     fig.set_size_inches(15, 8)
     ax.bar(weekCommit, totalComm)
